@@ -1,10 +1,9 @@
 package com.booklist;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.Drawable;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.widget.RecyclerView;
@@ -21,22 +20,18 @@ import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by szwang on 5/13/16.
- */
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 public class BookAdapter extends RecyclerView.Adapter<BookAdapter.ViewHolder> {
     private List<Book> bookList = new ArrayList<Book>();
-    private Context context;
+    private  Context context;
     public BookAdapter(Context context,ArrayList<Book> bookList) {
         this.context = context;
         this.bookList = bookList;
@@ -54,6 +49,7 @@ public class BookAdapter extends RecyclerView.Adapter<BookAdapter.ViewHolder> {
         viewHolder.bookName.setText(bookList.get(i).getTitle());
         viewHolder.bookPubinfo.setText(bookList.get(i).getAuthor().toString()+"/"+bookList.get(i).getPublisher()+"/"+bookList.get(i).getPubdate());
         viewHolder.bookSummary.setText(bookList.get(i).getSummary());
+        viewHolder.bookId=bookList.get(i).getId();
         Picasso.with(context).load(bookList.get(i).getImage()).resize(150, 200).into(viewHolder.bookImg);
     }
 
@@ -62,17 +58,34 @@ public class BookAdapter extends RecyclerView.Adapter<BookAdapter.ViewHolder> {
         return bookList.size();
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder{
+    public class ViewHolder extends RecyclerView.ViewHolder {
+        @BindView(R.id.book_image)
         ImageView bookImg;
+        @BindView(R.id.book_name)
         TextView bookName;
+        @BindView(R.id.book_publish)
         TextView bookPubinfo;
+        @BindView(R.id.book_summary)
         TextView bookSummary;
-        public ViewHolder(View view) {
-            super(view);
-            bookImg = (ImageView) view.findViewById(R.id.book_image);
-            bookName = (TextView) view.findViewById(R.id.book_name);
-            bookPubinfo=(TextView) view.findViewById(R.id.book_publish);
-            bookSummary=(TextView) view.findViewById(R.id.book_summary);
+        String bookId;
+        public ViewHolder(View itemView) {
+            super(itemView);
+            context = itemView.getContext();
+            ButterKnife.bind(itemView);
+            bookImg= (ImageView) itemView.findViewById(R.id.book_image);
+            bookName= (TextView) itemView.findViewById(R.id.book_name);
+            bookPubinfo= (TextView) itemView.findViewById(R.id.book_publish);
+            bookSummary= (TextView) itemView.findViewById(R.id.book_summary);
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+//                    Log.d("*****d:","dasdasda"+bookId);
+                    Intent intent=  new Intent(context, BookInfoActivity.class);
+                    intent.putExtra("urlOfId", bookId);
+                    context.startActivity(intent);
+                }
+            });
+
         }
     }
     private Map<String, Bitmap> caches = new HashMap<>();
