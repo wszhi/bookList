@@ -4,15 +4,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.RatingBar;
 import android.widget.TextView;
 
 import com.booklist.bean.Book;
@@ -47,9 +47,12 @@ public class BookAdapter extends RecyclerView.Adapter<BookAdapter.ViewHolder> {
     public void onBindViewHolder(ViewHolder viewHolder, int i) {
 
         viewHolder.bookName.setText(bookList.get(i).getTitle());
-        viewHolder.bookPubinfo.setText(bookList.get(i).getAuthor().toString()+"/"+bookList.get(i).getPublisher()+"/"+bookList.get(i).getPubdate());
+        viewHolder.bookPubinfo.setText(bookList.get(i).getAuthor().toString() + "/" + bookList.get(i).getPublisher() + "/" + bookList.get(i).getPubdate());
         viewHolder.bookSummary.setText(bookList.get(i).getSummary());
         viewHolder.bookId=bookList.get(i).getId();
+        Double numbers=bookList.get(i).getRating().getAverage();
+        viewHolder.minimumRating.setRating((float) (numbers / 2));
+        viewHolder.bookRating.setText(String.valueOf(numbers));
         Picasso.with(context).load(bookList.get(i).getImage()).resize(150, 200).into(viewHolder.bookImg);
     }
 
@@ -67,6 +70,8 @@ public class BookAdapter extends RecyclerView.Adapter<BookAdapter.ViewHolder> {
         TextView bookPubinfo;
         @BindView(R.id.book_summary)
         TextView bookSummary;
+        RatingBar minimumRating;
+        TextView bookRating;
         String bookId;
         public ViewHolder(View itemView) {
             super(itemView);
@@ -76,10 +81,11 @@ public class BookAdapter extends RecyclerView.Adapter<BookAdapter.ViewHolder> {
             bookName= (TextView) itemView.findViewById(R.id.book_name);
             bookPubinfo= (TextView) itemView.findViewById(R.id.book_publish);
             bookSummary= (TextView) itemView.findViewById(R.id.book_summary);
+            minimumRating = (RatingBar) itemView.findViewById(R.id.rating_bar);
+            bookRating =(TextView) itemView.findViewById(R.id.book_rating);
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-//                    Log.d("*****d:","dasdasda"+bookId);
                     Intent intent=  new Intent(context, BookInfoActivity.class);
                     intent.putExtra("urlOfId", bookId);
                     context.startActivity(intent);

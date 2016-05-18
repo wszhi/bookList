@@ -25,6 +25,7 @@ public class Book {
     /** Not-null value. */
     private String summary;
 
+    private Rating rating;
 
     private List<String> author;
 
@@ -42,6 +43,14 @@ public class Book {
         this.publisher = publisher;
         this.image = image;
         this.summary = summary;
+    }
+
+    public Rating getRating() {
+        return rating;
+    }
+
+    public void setRating(Rating rating) {
+        this.rating = rating;
     }
 
     public List<String> getAuthor() {
