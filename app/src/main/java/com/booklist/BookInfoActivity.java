@@ -3,29 +3,21 @@ package com.booklist;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import android.support.design.widget.TabLayout;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.ViewPager;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.TextView;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.Volley;
 import com.booklist.bean.Book;
 import com.booklist.db.BookService;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import com.squareup.picasso.Picasso;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,15 +29,13 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 
-public class BookInfoActivity extends Activity {
+public class BookInfoActivity extends AppCompatActivity {
     @BindView(R.id.book_image)
     ImageView bookImg;
-    @BindView(R.id.book_name)
-    TextView bookName;
-    @BindView(R.id.book_publish)
-    TextView bookPubinfo;
-    @BindView(R.id.book_summary)
-    TextView bookSummary;
+    @BindView(R.id.sliding_tabs)
+    TabLayout tabLayout;
+    @BindView(R.id.view_pager)
+    ViewPager pager;
     private String bookId;
 
     @Override
@@ -56,6 +46,8 @@ public class BookInfoActivity extends Activity {
         Intent intent = getIntent();
         bookId = intent.getStringExtra("urlOfId");
         getBookListData();
+
+
     }
 
     public void getBookListData(){
@@ -68,15 +60,24 @@ public class BookInfoActivity extends Activity {
         BookService bookService = retrofit.create(BookService.class);
         Call<Book> call = bookService.getBookInfo(bookId);
         call.enqueue(new Callback<Book>() {
-
             @Override
             public void onResponse(Call<Book> call, retrofit2.Response<Book> response) {
                 Book book = response.body();
-                bookName.setText(book.getTitle());
-                bookPubinfo.setText(book.getAuthor().toString()+"/"+book.getPublisher()+"/"+book.getPubdate());
-                bookSummary.setText(book.getSummary());
+
+                String bookPublishInfo="书名："+book.getTitle()+"\t\n作者："+book.getAuthor().toString() + "\t\n出版社：" + book.getPublisher() + "\t\n出版日期：" + book.getPubdate();
                 Picasso.with(BookInfoActivity.this).load(book.getImage()).resize(150, 200).into(bookImg);
 
+                MyPagerAdapter adapter = new MyPagerAdapter(getSupportFragmentManager());
+                adapter.addFragment(DetailFragment.newInstance(bookPublishInfo), "书籍简介");
+                adapter.addFragment(DetailFragment.newInstance(book.getAuthor_intro()), "作者简介");
+                adapter.addFragment(DetailFragment.newInstance(book.getSummary()), "内容简介");
+                adapter.addFragment(DetailFragment.newInstance(book.getCatalog()), "目录");
+                pager.setAdapter(adapter);
+                tabLayout.addTab(tabLayout.newTab().setText("书籍简介"));
+                tabLayout.addTab(tabLayout.newTab().setText("作者简介"));
+                tabLayout.addTab(tabLayout.newTab().setText("内容简介"));
+                tabLayout.addTab(tabLayout.newTab().setText("目录"));
+                tabLayout.setupWithViewPager(pager);
             }
 
             @Override
@@ -85,19 +86,35 @@ public class BookInfoActivity extends Activity {
             }
         });
 
-
-
-
     }
-    private void initViews(ArrayList<Book> bookList){
-        RecyclerView recyclerView = (RecyclerView)findViewById(R.id.book_lists);
-        recyclerView.setHasFixedSize(true);
-        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getApplicationContext());
-        recyclerView.setLayoutManager(layoutManager);
 
-        ArrayList androidVersions = bookList;
-        BookAdapter adapter = new BookAdapter(getApplicationContext(),androidVersions);
-        recyclerView.setAdapter(adapter);
 
+     class MyPagerAdapter extends FragmentPagerAdapter {
+        private final List<Fragment> mFragments = new ArrayList<>();
+        private final List<String> mFragmentTitles = new ArrayList<>();
+
+         public MyPagerAdapter(FragmentManager manager) {
+             super(manager);
+         }
+
+         public void addFragment(Fragment fragment, String title) {
+            mFragments.add(fragment);
+            mFragmentTitles.add(title);
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            return mFragments.get(position);
+        }
+
+        @Override
+        public int getCount() {
+            return mFragments.size();
+        }
+
+        @Override
+        public CharSequence getPageTitle(int position) {
+            return mFragmentTitles.get(position);
+        }
     }
 }
